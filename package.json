@@ -1,0 +1,17 @@
+{
+  "name": "chaiaurbackend",
+  "version": "1.0.0",
+  "description": "A backend at chai aur code channel - youtube",
+  "keywords": [
+    "javascript",
+    "backend",
+    "chai"
+  ],
+  "license": "ISC",
+  "author": "ChaiAurCode",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
