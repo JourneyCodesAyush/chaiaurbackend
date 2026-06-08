@@ -15,8 +15,12 @@ const registerUser = asyncHandler(async (req, res) => {
     // Check for user creation
     // Return response  
 
+    // console.log("Route hit");
+    // console.log("BODY:", req.body);
+    // console.log("FILES:", req.files);
+
     const { fullName, email, username, password } = req.body;
-    console.log(`email: ${email}`);
+    // console.log(`email: ${email}`);
 
     // if (fullName === "") {
     //     throw new ApiError(400, "fullname is required");
@@ -28,23 +32,36 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new ApiError(400, "All fields are required");
     }
 
-    const existedUser = User.findOne({
+    const existedUser = await User.findOne({
         $or: [{ username }, { email }]
     })
 
     if (existedUser) {
+        // console.log("User with email '" + email + "' and or username '" + username + "' already exists.")
+        // throw new ApiError(409, "User with email '" + email + "' and or username '" + username + "' already exists.")
         throw new ApiError(409, "User with email or username already exists");
     }
 
     const avatarLocalPath = req.files?.avatar[0]?.path
-    const coverImageLocalPath = req.files?.coverImage[0]?.path
+    // const coverImageLocalPath = req.files?.coverImage[0]?.path
+
+    // This is a JS issue
+    let coverImageLocalPath;
+    if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
+        coverImageLocalPath = req.files.coverImage[0].path
+    }
 
     if (!avatarLocalPath) {
         throw new ApiError(400, "Avatar file is required");
     }
 
+    // console.log("Avatar local path:", avatarLocalPath);
+    // console.log("Cover local path:", coverImageLocalPath);
+
     const avatar = await uploadFileOnCloudinary(avatarLocalPath);
+    // console.log("Avatar upload result:", avatar);
     const coverImage = await uploadFileOnCloudinary(coverImageLocalPath);
+    // console.log("Cover upload result:", coverImage);
 
     if (!avatar) {
         throw new ApiError(400, "Avatar file is required");
