@@ -5,6 +5,11 @@ import { uploadFileOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 
+const options = {
+    httpOnly: true,
+    secure: true
+}
+
 const generateAccessAndRefereshTokens = async (userId) => {
     try {
         const user = await User.findById(userId)
@@ -141,11 +146,6 @@ const loginUser = asyncHandler(async (req, res) => {
 
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
 
-    const options = {
-        httpOnly: true,
-        secure: true
-    }
-
     return res
         .status(200)
         .cookie("accessToken", accessToken, options)
@@ -175,11 +175,6 @@ const logoutUser = asyncHandler(async (req, res) => {
         }
     )
 
-    const options = {
-        httpOnly: true,
-        secure: true
-    }
-
     return res
         .status(200)
         .clearCookie("accessToken", options)
@@ -205,11 +200,6 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
         if (incomingRefreshToken !== user?.refreshToken) {
             throw new ApiError(401, "Refresh token is expired or used")
-        }
-
-        const options = {
-            httpOnly: true,
-            secure: true
         }
 
         const { accessToken, newRefreshToken } = await generateAccessAndRefereshTokens(user._id)
