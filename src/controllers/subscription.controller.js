@@ -68,7 +68,57 @@ const toggleSubscription = asyncHandler(async (req, res) => {
 
 // controller to return subscriber list of a channel
 const getUserChannelSubscribers = asyncHandler(async (req, res) => {
-  const { channelId } = req.params;
+  const { subscriberId } = req.params;
+
+  // Check for the validity of subscriber id
+  // Get all documents where 'channel' is current user
+  // Join the 'subscriber' with corresponding users
+  // Do NOT include password, refreshToken, __v of the user
+  // Return the object containing
+
+  if (!isValidObjectId(subscriberId))
+    throw new ApiError(400, "Invalid channel Id");
+
+  // console.log("Channel Id: ", subscriberId);
+
+  const subscribers = await Subscription.aggregate([
+    {
+      $match: { channel: new mongoose.Types.ObjectId(subscriberId) },
+    },
+    {
+      $lookup: {
+        from: "users", // collection name (lowercase plural)
+        localField: "subscriber", // Field in Subscription
+        foreignField: "_id", // Field in User
+        as: "subscriberDetails",
+        pipeline: [
+          {
+            $project: {
+              password: 0,
+              refreshToken: 0,
+              __v: 0,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: "$subscriberDetails",
+    },
+    {
+      $replaceRoot: {
+        newRoot: "$subscriberDetails",
+      },
+    },
+  ]);
+
+  // console.log("Subscribers: ", subscribers);
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, subscribers, "Subscribers fetched successfully")
+    );
 });
 
 // controller to return channel list to which user has subscribed
