@@ -180,6 +180,62 @@ const getVideoById = asyncHandler(async (req, res) => {
 const updateVideo = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   //TODO: update video details like title, description, thumbnail
+
+  // Validate video id
+  // Validate if all fields are present
+  // Upload new thumbnail on cloudinary
+  // Update on mongoDB
+  // Delete old thumbnail from cloudinary
+
+  const { title, description } = req.body;
+
+  if (!videoId) throw new ApiError(400, "Video id is required");
+
+  if (!isValidObjectId(videoId)) throw new ApiError(400, "Invalid video id");
+
+  if ([title, description].some((field) => field?.trim() === ""))
+    throw new ApiError(400, "All fields are required");
+
+  const thumbnailLocalPath = req.file?.path;
+
+  if (!thumbnailLocalPath) throw new ApiError(400, "Thumbnail is required");
+
+  const newThumbnail = await uploadOnCloudinary(thumbnailLocalPath);
+
+  if (!newThumbnail) throw new ApiError(500, "Thumbnail upload failed");
+
+  const oldVideoDoc = await Video.findOne({
+    _id: videoId,
+    owner: req.user._id,
+  });
+
+  if (!oldVideoDoc) throw new ApiError(404, "Video not found");
+
+  const updatedVideo = await Video.findOneAndUpdate(
+    {
+      _id: videoId,
+      owner: req.user._id,
+    },
+    {
+      $set: {
+        title: title,
+        description: description,
+        thumbNail: {
+          public_id: newThumbnail.public_id,
+          url: newThumbnail.secure_url,
+        },
+      },
+    },
+    { new: true } // Return the updated document
+  );
+
+  if (!updatedVideo) throw new ApiError(500, "Failed to update video details");
+
+  await deleteOnCloudinary(oldVideoDoc.thumbNail.public_id);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedVideo, "Updated video successfully"));
 });
 
 const deleteVideo = asyncHandler(async (req, res) => {
