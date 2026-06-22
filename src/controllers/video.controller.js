@@ -1,10 +1,12 @@
 import mongoose, { isValidObjectId } from "mongoose";
 import { Video } from "../models/video.model.js";
 import { User } from "../models/user.model.js";
+import { Like } from "../models/like.model.js";
+import { Comment } from "../models/comment.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { deleteOnCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
 
 const getAllVideos = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
@@ -93,6 +95,38 @@ const updateVideo = asyncHandler(async (req, res) => {
 const deleteVideo = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   //TODO: delete video
+
+  // Validate videoId
+  // Delete video
+  // Delete video file and thumbnail from cloudinary
+  // Delete likes associated with the video
+  // Delete comments associated with the video
+
+  if (!videoId) throw new ApiError(400, "Video id is required");
+
+  if (!isValidObjectId(videoId)) throw new ApiError(400, "Invalid video id");
+
+  const video = await Video.findOneAndDelete({
+    _id: videoId,
+    owner: req.user._id,
+  });
+
+  if (!video) throw new ApiError(404, "Video not found");
+
+  await deleteOnCloudinary(video.thumbNail.public_id);
+  await deleteOnCloudinary(video.videoFile.public_id, "video");
+
+  await Like.deleteMany({
+    video: videoId,
+  });
+
+  await Comment.deleteMany({
+    video: videoId,
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Video deleted successfully"));
 });
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
