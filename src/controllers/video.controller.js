@@ -369,9 +369,13 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
 
   if (!isValidObjectId(videoId)) throw new ApiError(400, "Invalid video id");
 
-  const video = await Video.findById(videoId);
+  const video = await Video.findOne({
+    _id: videoId,
+    owner: req.user._id,
+  });
 
-  if (!video) throw new ApiError(404, "Video does not exist");
+  if (!video || video.owner.toString() !== req.user._id.toString())
+    throw new ApiError(404, "Video does not exist");
 
   video.isPublished = !video.isPublished;
 
