@@ -11,6 +11,90 @@ import { deleteOnCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
 const getAllVideos = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
   //TODO: get all videos based on query, sort, pagination
+
+  const pipeline = [];
+
+  if (query?.trim()) {
+    const searchQuery = query?.trim();
+    pipeline.push({
+      $match: {
+        $or: [
+          {
+            title: {
+              $regex: searchQuery,
+              $options: "i",
+            },
+          },
+          {
+            description: {
+              $regex: searchQuery,
+              $options: "i",
+            },
+          },
+        ],
+      },
+    });
+  }
+
+  const matchStage = {
+    isPublished: true,
+  };
+
+  if (userId) {
+    if (!isValidObjectId(userId)) throw new ApiError(400, "Invalid user id");
+
+    matchStage.owner = new mongoose.Types.ObjectId(userId);
+  }
+
+  pipeline.push({ $match: matchStage });
+
+  const allowedSortFields = ["duration", "createdAt", "title", "views"];
+
+  if (sortBy && allowedSortFields.includes(sortBy)) {
+    pipeline.push({
+      $sort: {
+        [sortBy]: sortType === "asc" ? 1 : -1,
+      },
+    });
+  } else {
+    pipeline.push({ $sort: { createdAt: -1 } });
+  }
+
+  pipeline.push(
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "ownerDetails",
+        pipeline: [
+          {
+            $project: {
+              _id: 0,
+              username: 1,
+              "avatar.url": 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: "$ownerDetails",
+    }
+  );
+
+  const videoAggregate = Video.aggregate(pipeline);
+
+  const options = {
+    page: Math.max(1, Number(page) || 1),
+    limit: Math.min(50, Math.max(1, Number(limit) || 10)),
+  };
+
+  const video = await Video.aggregatePaginate(videoAggregate, options);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, video, "Videos fetched successfully"));
 });
 
 const publishAVideo = asyncHandler(async (req, res) => {
