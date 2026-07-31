@@ -6,7 +6,20 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 const createTweet = asyncHandler(async (req, res) => {
-  //TODO: create tweet
+  const userId = req?.user?._id;
+  if (!userId) throw new ApiError(401, "Unauthorized action");
+
+  const { content } = req.body;
+  if (!content) throw new ApiError(400, "Tweet body cannot be empty");
+
+  const doc = await Tweet.create({
+    owner: userId,
+    content: content,
+  });
+
+  return res
+    .status(201)
+    .json(new ApiResponse(201, doc, "Tweet created successfully"));
 });
 
 const getUserTweets = asyncHandler(async (req, res) => {
