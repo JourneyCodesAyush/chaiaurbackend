@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { isValidObjectId } from "mongoose";
 import { Comment } from "../models/comment.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -11,7 +11,25 @@ const getVideoComments = asyncHandler(async (req, res) => {
 });
 
 const addComment = asyncHandler(async (req, res) => {
-  // TODO: add a comment to a video
+  const { videoId } = req.params;
+
+  const userId = req?.user?._id;
+  if (!isValidObjectId(videoId)) throw new ApiError(400, "Invalid video id");
+
+  if (!userId) throw new ApiError(401, "Unauthorized action");
+
+  const { content } = req.body;
+  if (!content) throw new ApiError(400, "Comment body cannot be empty");
+
+  const doc = await Comment.create({
+    owner: userId,
+    video: videoId,
+    content: content,
+  });
+
+  return res
+    .status(201)
+    .json(new ApiResponse(201, doc, "Comment created successfully"));
 });
 
 const updateComment = asyncHandler(async (req, res) => {
