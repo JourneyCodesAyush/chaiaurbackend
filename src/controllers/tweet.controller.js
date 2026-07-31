@@ -31,7 +31,28 @@ const updateTweet = asyncHandler(async (req, res) => {
 });
 
 const deleteTweet = asyncHandler(async (req, res) => {
-  //TODO: delete tweet
+  const { tweetId } = req.params;
+
+  if (!isValidObjectId(tweetId)) throw new ApiError(400, "Invalid tweet id");
+
+  const userId = req?.user?._id;
+
+  if (!userId) throw new ApiError(401, "Unauthorized action");
+
+  let doc = await Tweet.findOneAndDelete({
+    _id: tweetId,
+    owner: userId,
+  });
+
+  if (doc) {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, doc, "Tweet deleted successfully"));
+  } else {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, doc, "No such tweet found"));
+  }
 });
 
 export { createTweet, getUserTweets, updateTweet, deleteTweet };
