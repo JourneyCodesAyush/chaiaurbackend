@@ -33,7 +33,38 @@ const addComment = asyncHandler(async (req, res) => {
 });
 
 const updateComment = asyncHandler(async (req, res) => {
-  // TODO: update a comment
+  const { commentId } = req.params;
+  const { content } = req.body;
+
+  if (!isValidObjectId(commentId))
+    throw new ApiError(400, "Invalid comment id");
+
+  const userId = req?.user?._id;
+
+  if (!userId) throw new ApiError(401, "Unauthorized action");
+
+  if (!content) throw new ApiError(400, "Comment cannot be empty");
+
+  const doc = await Comment.findOneAndUpdate(
+    {
+      _id: commentId,
+      owner: userId,
+    },
+    {
+      $set: { content: content },
+    },
+    { new: true }
+  );
+
+  if (doc) {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, doc, "Comment updated successfully"));
+  } else {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, doc, "No such comment found"));
+  }
 });
 
 const deleteComment = asyncHandler(async (req, res) => {
