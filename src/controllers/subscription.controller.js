@@ -7,7 +7,6 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 
 const toggleSubscription = asyncHandler(async (req, res) => {
   const { channelId } = req.params;
-  // TODO: toggle subscription
 
   // If channel id is not given, straight away return with an error
   // If user is not found, that means not logged in (unreachable state)
