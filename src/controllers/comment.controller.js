@@ -5,9 +5,56 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 const getVideoComments = asyncHandler(async (req, res) => {
-  //TODO: get all comments for a video
   const { videoId } = req.params;
   const { page = 1, limit = 10 } = req.query;
+
+  if (!isValidObjectId(videoId)) throw new ApiError(400, "Invalid video id");
+
+  const userId = req?.user?._id;
+
+  if (!userId) throw new ApiError(401, "Unauthorized action");
+
+  const commentsAggregate = Comment.aggregate([
+    {
+      $match: {
+        video: new mongoose.Types.ObjectId(vidoeId),
+      },
+    },
+    {
+      $lookup: {
+        $from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "ownerDetails",
+        pipeline: [
+          {
+            $project: {
+              _id: 0,
+              username: 1,
+              "avatar.url": 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: "$ownerDetails",
+    },
+    {
+      $sort: { createdAt: -1 },
+    },
+  ]);
+
+  const options = {
+    page: Math.max(1, Number(page) || 1),
+    limit: Math.max(50, Number(limit) || 50),
+  };
+
+  const comments = Comment.aggregatePaginate(commentsAggregate, options);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, comments, "Comments fetched successfully"));
 });
 
 const addComment = asyncHandler(async (req, res) => {
