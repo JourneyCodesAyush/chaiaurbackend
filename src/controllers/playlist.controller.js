@@ -7,7 +7,28 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 const createPlaylist = asyncHandler(async (req, res) => {
   const { name, description } = req.body;
 
-  //TODO: create playlist
+  if (!name) throw new ApiError(400, "Name of the playlist cannot be empty");
+
+  if (!description)
+    throw new ApiError(400, "Description of the playlist cannot be empty");
+
+  const userId = req?.user?._id;
+
+  if (!userId)
+    throw new ApiError(401, "Unauthorized action to create playlist");
+
+  const playlist = await Playlist.create({
+    owner: userId,
+    name: name,
+    description: description,
+    videos: [],
+  });
+
+  if (!playlist) throw new ApiError(500, "Could not create playlist");
+
+  return res
+    .status(201)
+    .json(new ApiResponse(201, playlist, "Created playlist successfully"));
 });
 
 const getUserPlaylists = asyncHandler(async (req, res) => {
