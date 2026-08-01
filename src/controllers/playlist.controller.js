@@ -79,7 +79,43 @@ const deletePlaylist = asyncHandler(async (req, res) => {
 const updatePlaylist = asyncHandler(async (req, res) => {
   const { playlistId } = req.params;
   const { name, description } = req.body;
-  //TODO: update playlist
+
+  if (!isValidObjectId(playlistId))
+    throw new ApiError(400, "Invalid playlist id");
+
+  if (!name) throw new ApiError(400, "Name of the playlist cannot be empty");
+
+  if (!description)
+    throw new ApiError(400, "Description of the playlist cannot be empty");
+
+  const userId = req?.user?._id;
+
+  if (!userId)
+    throw new ApiError(401, "Unauthorized action to delete playlist");
+
+  const doc = await Playlist.findOneAndUpdate(
+    {
+      _id: playlistId,
+      owner: userId,
+    },
+    {
+      $set: {
+        name: name,
+        description: description,
+      },
+    },
+    { new: true }
+  );
+
+  if (doc) {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, doc, "Playlist updated successfully"));
+  } else {
+    return res
+      .status(404)
+      .json(new ApiResponse(404, doc, "No such playlist found"));
+  }
 });
 
 export {
