@@ -39,7 +39,66 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
 
 const getPlaylistById = asyncHandler(async (req, res) => {
   const { playlistId } = req.params;
-  //TODO: get playlist by id
+
+  if (!isValidObjectId(playlistId))
+    throw new ApiError(400, "Invalid playlist id");
+
+  const userId = req?.user?._id;
+
+  if (!userId) throw new ApiError(401, "Unauthorized action to get playlist");
+
+  const doc = await Playlist.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(playlistId),
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "ownerDetails",
+        pipeline: [
+          {
+            $project: {
+              _id: 0,
+              username: 1,
+              "avatar.url": 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: "$ownerDetails",
+    },
+    {
+      $lookup: {
+        from: "videos",
+        localField: "videos",
+        foreignField: "_id",
+        as: "videoDetails",
+        pipeline: [
+          {
+            $project: {
+              "thumbnail.url": 1,
+              title: 1,
+              duration: 1,
+              views: 1,
+            },
+          },
+        ],
+      },
+    },
+  ]);
+
+  if (doc?.length === 0)
+    return res.status(404).json(new ApiResponse(404, [], "Playlist not found"));
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, doc[0], "Playlist fetched successfully"));
 });
 
 const addVideoToPlaylist = asyncHandler(async (req, res) => {
