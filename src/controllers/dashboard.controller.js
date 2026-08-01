@@ -7,7 +7,71 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 const getChannelStats = asyncHandler(async (req, res) => {
-  // TODO: Get the channel stats like total video views, total subscribers, total videos, total likes etc.
+  const userId = req?.user?._id;
+
+  if (!userId)
+    throw new ApiError(401, "Unauthorized action to get channel stats");
+
+  const doc = await Video.aggregate([
+    {
+      $match: {
+        owner: new mongoose.Types.ObjectId(userId),
+      },
+    },
+    {
+      $lookup: {
+        from: "likes",
+        localField: "_id",
+        foreignField: "video",
+        as: "likes",
+      },
+    },
+    {
+      $group: {
+        _id: userId,
+        totalVideos: {
+          $sum: 1,
+        },
+        totalViews: {
+          $sum: "$views",
+        },
+        totalLikes: {
+          $sum: {
+            $size: "$likes",
+          },
+        },
+      },
+    },
+  ]);
+
+  const totalSubscribersDoc = await Subscription.aggregate([
+    {
+      $match: {
+        channel: new mongoose.Types.ObjectId(userId),
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        totalSubscribers: {
+          $sum: 1,
+        },
+      },
+    },
+  ]);
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        totalLikes: doc[0]?.totalLikes || 0,
+        totalViews: doc[0]?.totalViews || 0,
+        totalSubscribers: totalSubscribersDoc[0]?.totalSubscribers || 0,
+        totalVideos: doc[0]?.totalVideos || 0,
+      },
+      "Channel stats fetched successfully"
+    )
+  );
 });
 
 const getChannelVideos = asyncHandler(async (req, res) => {
