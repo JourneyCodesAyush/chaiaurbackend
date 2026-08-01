@@ -1,5 +1,6 @@
 import mongoose, { isValidObjectId } from "mongoose";
 import { Playlist } from "../models/playlist.model.js";
+import { Video } from "../models/video.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -43,6 +44,39 @@ const getPlaylistById = asyncHandler(async (req, res) => {
 
 const addVideoToPlaylist = asyncHandler(async (req, res) => {
   const { playlistId, videoId } = req.params;
+
+  if (!isValidObjectId(playlistId))
+    throw new ApiError(400, "Invalid playlist id");
+
+  if (!isValidObjectId(videoId)) throw new ApiError(400, "Invalid vidoe id");
+
+  const videoDoc = await Video.exists({ _id: videoId });
+  const exists = videoDoc !== null;
+  if (!exists) throw new ApiError(404, "Video does not exist");
+
+  const userId = req?.user?._id;
+  if (!userId)
+    throw new ApiError(401, "Unauthorized action to add video to playlist");
+
+  const doc = await Playlist.findOneAndUpdate(
+    {
+      _id: playlistId,
+      owner: userId,
+    },
+    {
+      $addToSet: {
+        videos: videoId,
+      },
+    },
+    { new: true }
+  );
+
+  if (!doc)
+    return res.status(404).json(new ApiResponse(404, [], "Playlist not found"));
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, doc, "Video added to playlist successfully"));
 });
 
 const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
