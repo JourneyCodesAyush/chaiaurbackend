@@ -107,11 +107,8 @@ const updateComment = asyncHandler(async (req, res) => {
     return res
       .status(200)
       .json(new ApiResponse(200, doc, "Comment updated successfully"));
-  } else {
-    return res
-      .status(200)
-      .json(new ApiResponse(200, doc, "No such comment found"));
   }
+  throw new ApiError(404, "No such comment found");
 });
 
 const deleteComment = asyncHandler(async (req, res) => {
@@ -133,11 +130,8 @@ const deleteComment = asyncHandler(async (req, res) => {
     return res
       .status(200)
       .json(new ApiResponse(200, doc, "Comment deleted successfully"));
-  } else {
-    return res
-      .status(200)
-      .json(new ApiResponse(200, doc, "No such comment found"));
   }
+  throw new ApiError(404, "No such comment found");
 });
 
 export { getVideoComments, addComment, updateComment, deleteComment };

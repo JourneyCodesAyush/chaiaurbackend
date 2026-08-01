@@ -20,7 +20,7 @@ const toggleSubscription = asyncHandler(async (req, res) => {
 
   const userId = req?.user?._id;
 
-  if (!userId) throw new ApiError(404, "User not found");
+  if (!userId) throw new ApiError(401, "Unauthorized action");
 
   // console.log("userId:", userId, typeof userId);
   // console.log("channelId:", channelId, typeof channelId);

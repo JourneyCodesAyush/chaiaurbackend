@@ -11,7 +11,7 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
 
   const userId = req?.user?._id;
 
-  if (!userId) throw new ApiError(404, "User not found");
+  if (!userId) throw new ApiError(401, "Unauthorized action");
 
   let doc = await Like.findOne({
     video: videoId,
@@ -53,7 +53,7 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
 
   const userId = req?.user?._id;
 
-  if (!userId) throw new ApiError(404, "User not found");
+  if (!userId) throw new ApiError(401, "Unauthorized action");
 
   let doc = await Like.findOne({
     comment: commentId,
@@ -94,7 +94,7 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
 
   const userId = req?.user?._id;
 
-  if (!userId) throw new ApiError(404, "User not found");
+  if (!userId) throw new ApiError(401, "Unauthorized action");
 
   let doc = await Like.findOne({
     tweet: tweetId,
@@ -129,10 +129,14 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
 });
 
 const getLikedVideos = asyncHandler(async (req, res) => {
+  const userId = req?.user?._id;
+
+  if (!userId) throw new ApiError(401, "Unauthorized action");
+
   const videos = await Like.aggregate([
     {
       $match: {
-        likedBy: req.user._id,
+        likedBy: userId,
       },
     },
     {

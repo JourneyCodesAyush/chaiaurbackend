@@ -63,11 +63,8 @@ const updateTweet = asyncHandler(async (req, res) => {
     return res
       .status(200)
       .json(new ApiResponse(200, doc, "Tweet updated successfully"));
-  } else {
-    return res
-      .status(200)
-      .json(new ApiResponse(200, doc, "No such tweet found"));
   }
+  throw new ApiError(404, "No such tweet found");
 });
 
 const deleteTweet = asyncHandler(async (req, res) => {
@@ -88,11 +85,8 @@ const deleteTweet = asyncHandler(async (req, res) => {
     return res
       .status(200)
       .json(new ApiResponse(200, doc, "Tweet deleted successfully"));
-  } else {
-    return res
-      .status(200)
-      .json(new ApiResponse(200, doc, "No such tweet found"));
   }
+  throw new ApiError(404, "No such tweet found");
 });
 
 export { createTweet, getUserTweets, updateTweet, deleteTweet };

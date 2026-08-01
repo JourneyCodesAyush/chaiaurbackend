@@ -124,8 +124,7 @@ const getPlaylistById = asyncHandler(async (req, res) => {
     },
   ]);
 
-  if (doc?.length === 0)
-    return res.status(404).json(new ApiResponse(404, [], "Playlist not found"));
+  if (doc?.length === 0) throw new ApiError(404, "Playlist not found");
 
   return res
     .status(200)
@@ -161,8 +160,7 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
     { new: true }
   );
 
-  if (!doc)
-    return res.status(404).json(new ApiResponse(404, [], "Playlist not found"));
+  if (!doc) throw new ApiError(404, "Playlist not found");
 
   return res
     .status(200)
@@ -201,8 +199,7 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
     { new: true }
   );
 
-  if (!doc)
-    return res.status(404).json(new ApiResponse(404, [], "Playlist not found"));
+  if (!doc) throw new ApiError(404, "Playlist not found");
 
   return res
     .status(200)
@@ -227,8 +224,7 @@ const deletePlaylist = asyncHandler(async (req, res) => {
     owner: userId,
   });
 
-  if (!deletedPlaylist)
-    return res.status(404).json(new ApiResponse(404, [], "Playlist not found"));
+  if (!deletedPlaylist) throw new ApiError(404, "Playlist not found");
 
   return res
     .status(200)
@@ -272,11 +268,8 @@ const updatePlaylist = asyncHandler(async (req, res) => {
     return res
       .status(200)
       .json(new ApiResponse(200, doc, "Playlist updated successfully"));
-  } else {
-    return res
-      .status(404)
-      .json(new ApiResponse(404, doc, "No such playlist found"));
   }
+  throw new ApiError(404, "Playlist not found");
 });
 
 export {
