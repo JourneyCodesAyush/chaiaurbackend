@@ -46,7 +46,7 @@ app.use("/api/v1/dashboard", dashboardRouter);
 
 // http://localhost:8000/api/v1/users/register
 
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   const statusCode = err.statusCode || 500;
 
   console.error("ERROR:", err);
