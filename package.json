@@ -14,7 +14,7 @@
   "scripts": {
     "dev": "nodemon src/index.js",
     "lint": "eslint .",
-    "test": "vitest"
+    "test": "vitest run"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
