@@ -92,6 +92,54 @@ describe("POST /api/v1/users/register", () => {
     expect(response.status).toBe(400);
   });
 
+  it("fails with 400 when fullName is ommitted", async () => {
+    const payload = buildUserPayload();
+    const response = await request(app)
+      .post("/api/v1/users/register")
+      .field("username", payload.username)
+      .field("email", payload.email)
+      .field("password", payload.password)
+      .attach("avatar", avatarPath);
+
+    expect(response.status).toBe(400);
+  });
+
+  it("fails with 400 when username is ommitted", async () => {
+    const payload = buildUserPayload();
+    const response = await request(app)
+      .post("/api/v1/users/register")
+      .field("fullName", payload.fullName)
+      .field("email", payload.email)
+      .field("password", payload.password)
+      .attach("avatar", avatarPath);
+
+    expect(response.status).toBe(400);
+  });
+
+  it("fails with 400 when email is ommitted", async () => {
+    const payload = buildUserPayload();
+    const response = await request(app)
+      .post("/api/v1/users/register")
+      .field("fullName", payload.fullName)
+      .field("username", payload.username)
+      .field("password", payload.password)
+      .attach("avatar", avatarPath);
+
+    expect(response.status).toBe(400);
+  });
+
+  it("fails with 400 when password is ommitted", async () => {
+    const payload = buildUserPayload();
+    const response = await request(app)
+      .post("/api/v1/users/register")
+      .field("fullName", payload.fullName)
+      .field("username", payload.username)
+      .field("email", payload.email)
+      .attach("avatar", avatarPath);
+
+    expect(response.status).toBe(400);
+  });
+
   it("fails with 409 when email is already registered", async () => {
     const payload = buildUserPayload();
     const response = await request(app)
