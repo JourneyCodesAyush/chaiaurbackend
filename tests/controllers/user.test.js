@@ -91,4 +91,50 @@ describe("POST /api/v1/users/register", () => {
 
     expect(response.status).toBe(400);
   });
+
+  it("fails with 409 when email is already registered", async () => {
+    const payload = buildUserPayload();
+    const response = await request(app)
+      .post("/api/v1/users/register")
+      .field("fullName", payload.fullName)
+      .field("email", payload.email)
+      .field("username", payload.username)
+      .field("password", payload.password)
+      .attach("avatar", avatarPath);
+
+    const secondPayload = buildUserPayload({ email: payload.email });
+    const response2 = await request(app)
+      .post("/api/v1/users/register")
+      .field("fullName", secondPayload.fullName)
+      .field("username", secondPayload.username)
+      .field("email", secondPayload.email)
+      .field("password", secondPayload.password)
+      .attach("avatar", avatarPath);
+
+    expect(response.status).toBe(201);
+    expect(response2.status).toBe(409);
+  });
+
+  it("fails with 409 when username is already registered", async () => {
+    const payload = buildUserPayload();
+    const response = await request(app)
+      .post("/api/v1/users/register")
+      .field("fullName", payload.fullName)
+      .field("email", payload.email)
+      .field("username", payload.username)
+      .field("password", payload.password)
+      .attach("avatar", avatarPath);
+
+    const secondPayload = buildUserPayload({ username: payload.username });
+    const response2 = await request(app)
+      .post("/api/v1/users/register")
+      .field("fullName", secondPayload.fullName)
+      .field("username", secondPayload.username)
+      .field("email", secondPayload.email)
+      .field("password", secondPayload.password)
+      .attach("avatar", avatarPath);
+
+    expect(response.status).toBe(201);
+    expect(response2.status).toBe(409);
+  });
 });
