@@ -6,6 +6,8 @@ import { avatarPath } from "../fixtures/paths.js";
 import { app } from "../../src/app.js";
 import { buildUserPayload } from "../fixtures/user.factory.js";
 
+import { User } from "../../src/models/user.model.js";
+
 vi.mock("../../src/utils/cloudinary.js");
 
 describe("POST /api/v1/users/register", () => {
@@ -184,5 +186,38 @@ describe("POST /api/v1/users/register", () => {
 
     expect(response.status).toBe(201);
     expect(response2.status).toBe(409);
+  });
+});
+
+describe("POST /api/v1/users/login", () => {
+  it("logs in successfully with correct credentials", async () => {
+    const payload = buildUserPayload();
+    const registerResponse = await request(app)
+      .post("/api/v1/users/register")
+      .field("fullName", payload.fullName)
+      .field("email", payload.email)
+      .field("username", payload.username)
+      .field("password", payload.password)
+      .attach("avatar", avatarPath);
+
+    expect(registerResponse.status).toBe(201);
+
+    const loginResult = await request(app).post("/api/v1/users/login").send({
+      username: payload.username,
+      email: payload.email,
+      password: payload.password,
+    });
+
+    const cookies = loginResult.headers["set-cookie"];
+
+    expect(loginResult.status).toBe(200);
+    expect(loginResult.body.data.user.refreshToken).toBeUndefined();
+    expect(loginResult.body.data.refreshToken).toBeDefined();
+    expect(loginResult.body.data.accessToken).toBeDefined();
+    expect(cookies.some((c) => c.startsWith("accessToken="))).toBe(true);
+    expect(cookies.some((c) => c.startsWith("refreshToken="))).toBe(true);
+
+    const dbUser = await User.findById(loginResult.body.data.user._id);
+    expect(dbUser.refreshToken).toBe(loginResult.body.data.refreshToken);
   });
 });
