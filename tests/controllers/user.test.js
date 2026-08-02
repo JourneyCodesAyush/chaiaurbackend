@@ -27,4 +27,68 @@ describe("POST /api/v1/users/register", () => {
     expect(response.body.data.refreshToken).toBeUndefined();
     expect(response.body.data.accessToken).toBeUndefined();
   });
+
+  it("fails with 400 when fullName is an empty string", async () => {
+    const payload = buildUserPayload();
+    const response = await request(app)
+      .post("/api/v1/users/register")
+      .field("fullName", "")
+      .field("username", payload.username)
+      .field("email", payload.email)
+      .field("password", payload.password)
+      .attach("avatar", avatarPath);
+
+    expect(response.status).toBe(400);
+  });
+
+  it("fails with 400 when username is an empty string", async () => {
+    const payload = buildUserPayload();
+    const response = await request(app)
+      .post("/api/v1/users/register")
+      .field("fullName", payload.fullName)
+      .field("username", "")
+      .field("email", payload.email)
+      .field("password", payload.password)
+      .attach("avatar", avatarPath);
+
+    expect(response.status).toBe(400);
+  });
+
+  it("fails with 400 when email is an empty string", async () => {
+    const payload = buildUserPayload();
+    const response = await request(app)
+      .post("/api/v1/users/register")
+      .field("fullName", payload.fullName)
+      .field("username", payload.username)
+      .field("email", "")
+      .field("password", payload.password)
+      .attach("avatar", avatarPath);
+
+    expect(response.status).toBe(400);
+  });
+
+  it("fails with 400 when password is an empty string", async () => {
+    const payload = buildUserPayload();
+    const response = await request(app)
+      .post("/api/v1/users/register")
+      .field("fullName", payload.fullName)
+      .field("username", payload.username)
+      .field("email", payload.email)
+      .field("password", "")
+      .attach("avatar", avatarPath);
+
+    expect(response.status).toBe(400);
+  });
+
+  it("fails with 400 when avatar is not attached", async () => {
+    const payload = buildUserPayload();
+    const response = await request(app)
+      .post("/api/v1/users/register")
+      .field("fullName", payload.fullName)
+      .field("username", payload.username)
+      .field("email", payload.email)
+      .field("password", payload.password);
+
+    expect(response.status).toBe(400);
+  });
 });
