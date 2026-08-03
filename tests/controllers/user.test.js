@@ -293,4 +293,13 @@ describe("POST /api/v1/users/login", () => {
 
     expect(loginResult.status).toBe(401);
   });
+
+  it("login fails without password field", async () => {
+    const loginResult = await request(app).post("/api/v1/users/login").send({
+      username: "dummyUsername",
+      email: "dummyEmail@example.com",
+    });
+
+    expect(loginResult.status).toBe(400);
+  });
 });
