@@ -141,6 +141,10 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "username or email is required");
   }
 
+  if (!password) {
+    throw new ApiError(400, "Password field cannot be empty");
+  }
+
   const user = await User.findOne({
     $or: [{ username }, { email }],
   });
