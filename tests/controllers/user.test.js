@@ -6,6 +6,8 @@ import { avatarPath } from "../fixtures/paths.js";
 import { app } from "../../src/app.js";
 import { buildUserPayload } from "../fixtures/user.factory.js";
 
+import { registerTestUser } from "../helpers/register.js";
+
 import { User } from "../../src/models/user.model.js";
 
 vi.mock("../../src/utils/cloudinary.js");
@@ -191,14 +193,7 @@ describe("POST /api/v1/users/register", () => {
 
 describe("POST /api/v1/users/login", () => {
   it("logs in successfully with correct credentials", async () => {
-    const payload = buildUserPayload();
-    const registerResponse = await request(app)
-      .post("/api/v1/users/register")
-      .field("fullName", payload.fullName)
-      .field("email", payload.email)
-      .field("username", payload.username)
-      .field("password", payload.password)
-      .attach("avatar", avatarPath);
+    const { payload, registerResponse } = await registerTestUser();
 
     expect(registerResponse.status).toBe(201);
 
@@ -222,14 +217,7 @@ describe("POST /api/v1/users/login", () => {
   });
 
   it("logs in successfully with only username and password", async () => {
-    const payload = buildUserPayload();
-    const registerResponse = await request(app)
-      .post("/api/v1/users/register")
-      .field("fullName", payload.fullName)
-      .field("email", payload.email)
-      .field("username", payload.username)
-      .field("password", payload.password)
-      .attach("avatar", avatarPath);
+    const { payload, registerResponse } = await registerTestUser();
 
     expect(registerResponse.status).toBe(201);
 
@@ -252,14 +240,7 @@ describe("POST /api/v1/users/login", () => {
   });
 
   it("logs in successfully with only email and password", async () => {
-    const payload = buildUserPayload();
-    const registerResponse = await request(app)
-      .post("/api/v1/users/register")
-      .field("fullName", payload.fullName)
-      .field("email", payload.email)
-      .field("username", payload.username)
-      .field("password", payload.password)
-      .attach("avatar", avatarPath);
+    const { payload, registerResponse } = await registerTestUser();
 
     expect(registerResponse.status).toBe(201);
 
