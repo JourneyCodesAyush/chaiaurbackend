@@ -193,7 +193,7 @@ const logoutUser = asyncHandler(async (req, res) => {
       },
     },
     {
-      new: true,
+      returnDocument: "after",
     }
   );
 
@@ -290,7 +290,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
         email: email,
       },
     },
-    { new: true } // The updated object will be returned
+    { returnDocument: "after" } // The updated object will be returned
   ).select("-password");
 
   return res
@@ -323,7 +323,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
         },
       },
     },
-    { new: true } // Return the updated object
+    { returnDocument: "after" } // Return the updated object
   ).select("-password");
 
   await deleteOnCloudinary(oldUser.avatar.public_id);
@@ -358,7 +358,7 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
         },
       },
     },
-    { new: true } // Return the updated object
+    { returnDocument: "after" } // Return the updated object
   ).select("-password");
 
   await deleteOnCloudinary(oldUser.coverImage.public_id);

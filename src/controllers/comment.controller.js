@@ -100,7 +100,7 @@ const updateComment = asyncHandler(async (req, res) => {
     {
       $set: { content: content },
     },
-    { new: true }
+    { returnDocument: "after" }
   );
 
   if (doc) {

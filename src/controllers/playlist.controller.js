@@ -157,7 +157,7 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
         videos: videoId,
       },
     },
-    { new: true }
+    { returnDocument: "after" }
   );
 
   if (!doc) throw new ApiError(404, "Playlist not found");
@@ -196,7 +196,7 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
         videos: videoId,
       },
     },
-    { new: true }
+    { returnDocument: "after" }
   );
 
   if (!doc) throw new ApiError(404, "Playlist not found");
@@ -261,7 +261,7 @@ const updatePlaylist = asyncHandler(async (req, res) => {
         description: description,
       },
     },
-    { new: true }
+    { returnDocument: "after" }
   );
 
   if (doc) {

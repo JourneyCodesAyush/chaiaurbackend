@@ -306,7 +306,7 @@ const updateVideo = asyncHandler(async (req, res) => {
         },
       },
     },
-    { new: true } // Return the updated document
+    { returnDocument: "after" } // Return the updated document
   );
 
   if (!updatedVideo) throw new ApiError(500, "Failed to update video details");
