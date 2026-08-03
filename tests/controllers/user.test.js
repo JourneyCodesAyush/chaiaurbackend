@@ -7,6 +7,7 @@ import { app } from "../../src/app.js";
 import { buildUserPayload } from "../fixtures/user.factory.js";
 
 import { registerTestUser } from "../helpers/register.js";
+import { loginTestUser } from "../helpers/login.js";
 
 import { User } from "../../src/models/user.model.js";
 
@@ -301,5 +302,43 @@ describe("POST /api/v1/users/login", () => {
     });
 
     expect(loginResult.status).toBe(400);
+  });
+});
+
+describe("POST /api/v1/users/logout", () => {
+  it("logs out a user successfully", async () => {
+    const { loginResult } = await loginTestUser();
+    const cookies = loginResult.headers["set-cookie"];
+    const userId = loginResult.body.data.user._id;
+
+    const logoutResponse = await request(app)
+      .post("/api/v1/users/logout")
+      .set("Cookie", cookies);
+
+    expect(logoutResponse.status).toBe(200);
+
+    const dbUser = await User.findById(userId);
+    expect(dbUser.refreshToken).toBeUndefined();
+  });
+
+  it("clears accessToken and refreshToken cookies on logout", async () => {
+    const { loginResult } = await loginTestUser();
+    const cookies = loginResult.headers["set-cookie"];
+
+    const logoutResponse = await request(app)
+      .post("/api/v1/users/logout")
+      .set("Cookie", cookies);
+
+    const logoutCookies = logoutResponse.headers["set-cookie"];
+    expect(
+      logoutCookies.some(
+        (c) => c.startsWith("accessToken=") && c.includes("Expires=")
+      )
+    ).toBe(true);
+    expect(
+      logoutCookies.some(
+        (c) => c.startsWith("refreshToken=") && c.includes("Expires=")
+      )
+    ).toBe(true);
   });
 });
