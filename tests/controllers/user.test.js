@@ -261,4 +261,36 @@ describe("POST /api/v1/users/login", () => {
     const dbUser = await User.findById(loginResult.body.data.user._id);
     expect(dbUser.refreshToken).toBe(loginResult.body.data.refreshToken);
   });
+
+  it("login fails when both email and username are missing", async () => {
+    const loginResult = await request(app).post("/api/v1/users/login").send({
+      password: "placeholder",
+    });
+
+    expect(loginResult.status).toBe(400);
+  });
+
+  it("login fails with unknown user", async () => {
+    const loginResult = await request(app).post("/api/v1/users/login").send({
+      username: "userDoesNotExist",
+      email: "incorrectEmail",
+      password: "randomPassword",
+    });
+
+    expect(loginResult.status).toBe(404);
+  });
+
+  it("login fails with wrong password", async () => {
+    const { payload, registerResponse } = await registerTestUser();
+
+    expect(registerResponse.status).toBe(201);
+
+    const loginResult = await request(app).post("/api/v1/users/login").send({
+      username: payload.username,
+      email: payload.email,
+      password: "wrongPassword",
+    });
+
+    expect(loginResult.status).toBe(401);
+  });
 });
