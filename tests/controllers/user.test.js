@@ -342,3 +342,23 @@ describe("POST /api/v1/users/logout", () => {
     ).toBe(true);
   });
 });
+
+describe("GET /api/v1/users/current-user", () => {
+  it("gets current user info", async () => {
+    const { payload, registerResponse, loginResult } = await loginTestUser();
+    expect(registerResponse.status).toBe(201);
+
+    const cookies = loginResult.headers["set-cookie"];
+
+    const currentUserResponse = await request(app)
+      .get("/api/v1/users/current-user")
+      .set("Cookie", cookies);
+
+    expect(currentUserResponse.status).toBe(200);
+    expect(currentUserResponse.body.success).toBe(true);
+    expect(currentUserResponse.body.data.username).toBe(payload.username);
+    expect(currentUserResponse.body.data.email).toBe(payload.email);
+    expect(currentUserResponse.body.data.password).toBeUndefined();
+    expect(currentUserResponse.body.data.refreshToken).toBeUndefined();
+  });
+});
